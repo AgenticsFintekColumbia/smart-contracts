@@ -241,7 +241,57 @@ def generate_smart_contract(description: str, blockchain: str = "Ethereum") -> S
     llm = genai.GenerativeModel("gemini-2.0-flash")
     response = llm.generate_content(prompt)
 
-    # Return structured result
+    raw_text = getattr(response, "text", "") or ""
+    contract_code, clauses = _parse_contract_response(raw_text)
+
+    return SmartContract(
+        contract_code=contract_code,
+        clauses=clauses,
+    )
+
+
+@mcp.tool(name="generate_smart_contract_pretrained")
+def generate_smart_contract_pretrained(
+    description: str,
+    blockchain: str = "Ethereum",
+    max_new_tokens: int = 1024,
+    temperature: float = 0.6,
+    top_p: float = 0.9,
+) -> SmartContract:
+    """Generate a contract using the FSM fine-tuned TinyLlama adapter."""
+
+    model, tokenizer, device = _load_fsm_generation_stack()
+    user_prompt = _build_user_prompt(description, blockchain)
+
+    inputs = tokenizer(
+        user_prompt,
+        return_tensors="pt",
+        padding=True,
+        truncation=True,
+    )
+
+    import torch
+
+    inputs = {k: v.to(device) for k, v in inputs.items()}
+
+    eos_token_id = tokenizer.eos_token_id
+    generation_kwargs = {
+        "max_new_tokens": max_new_tokens,
+        "temperature": temperature,
+        "top_p": top_p,
+    }
+    if eos_token_id is not None:
+        generation_kwargs["eos_token_id"] = eos_token_id
+
+    with torch.no_grad():
+        outputs = model.generate(
+            **inputs,
+            **generation_kwargs,
+        )
+
+    decoded = tokenizer.decode(outputs[0], skip_special_tokens=True)
+    contract_code, clauses = _parse_contract_response(decoded)
+
     return SmartContract(
         contract_code=contract_code,
         clauses=clauses,
