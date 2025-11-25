@@ -165,7 +165,7 @@ if st.button("🚀 Generate Contract"):
         render_logs_in_placeholder(log_placeholder, st.session_state.crew_log, LOG_HEIGHT_PX)
 
     with st.chat_message("assistant"):
-        st.write("🛠 Running agents… generating contract...")
+        st.write("Running Agent")
 
         # run pipeline
         with st.spinner("Generating contract..."):
@@ -197,7 +197,7 @@ if st.button("🚀 Generate Contract"):
         # ---------------------------
         # FINAL OUTPUT
         # ---------------------------
-        st.subheader("✅ Final Generated Contract")
+        st.success("Generated Contract")
 
         if contract and hasattr(contract, "contract_code"):
             st.code(contract.contract_code, language="solidity")
@@ -205,14 +205,20 @@ if st.button("🚀 Generate Contract"):
             st.write("⚠️ No contract code returned.")
 
         st.subheader("🧪 Validation Results")
-        validation_data = {
-            "is_compilable": getattr(contract, "is_compilable", None),
-            "is_deployable": getattr(contract, "is_deployable", None),
-            "compiler_errors": getattr(contract, "compiler_errors", "None"),
-            "deploy_errors": getattr(contract, "deploy_errors", "None"),
-        }
-        for k, v in validation_data.items():
-            st.write(f"• **{k}:** {v}")
+        is_compilable = getattr(contract, "is_compilable", None)
+        is_deployable = getattr(contract, "is_deployable", None)
+        compiler_errors = getattr(contract, "compiler_errors", "")
+        deploy_errors = getattr(contract, "deploy_errors", "")
+
+        if is_compilable:
+            st.success("Contract is compilable ✅")
+        else:
+            st.error(f"Contract failed compilation ❌\n{compiler_errors}")
+
+        if is_deployable:
+            st.success("Contract is deployable ✅")
+        else:
+            st.error(f"Contract failed deployment ❌\n{deploy_errors}")
 
         st.subheader("📖 Clauses")
         clauses = getattr(contract, "clauses", [])
