@@ -149,8 +149,8 @@ def render_app():
         MODEL_OPTIONS = {
             "Gemini 2.0 Flash": "gemini",
             "FSM Fine-Tuned TinyLlama": "fsm_pretrained",
-            "GPT-4": "gpt4",
-            "Claude 3.5": "claude_3_5",
+            # "GPT-4": "gpt4",
+            # "Claude 3.5": "claude_3_5",
         }
 
         model_label = st.selectbox("Choose generation model", list(MODEL_OPTIONS.keys()))
@@ -163,8 +163,6 @@ def render_app():
     # ---------------------------
     st.title("🧠 Solidity Contract Generator")
 
-    log_placeholder = st.empty()
-
     if st.button("🚀 Generate Contract"):
         if not user_input.strip():
             st.warning("Please enter a contract description.")
@@ -172,19 +170,20 @@ def render_app():
 
         st.chat_message("user").write(user_input)
 
-        st.session_state.crew_log = ""
-        render_logs_in_placeholder(log_placeholder, "Waiting for logs...", LOG_HEIGHT_PX)
+        with st.chat_message("assistant"):
+            st.write("Running Agent")
 
-        pipeline = get_pipeline()
+            log_placeholder = st.empty()
+            st.session_state.crew_log = ""
+            render_logs_in_placeholder(log_placeholder, "Waiting for logs...", LOG_HEIGHT_PX)
 
-        def _handle_log_stream(log_text: str):
-            st.session_state.crew_log = clean_ansi(log_text)
-            render_logs_in_placeholder(
+            pipeline = get_pipeline()
+
+            def _handle_log_stream(log_text: str):
+                st.session_state.crew_log = clean_ansi(log_text)
+                render_logs_in_placeholder(
                 log_placeholder, st.session_state.crew_log, LOG_HEIGHT_PX
             )
-
-    with st.chat_message("assistant"):
-        st.write("Running Agent")
 
             with st.spinner("Generating contract..."):
                 result, final_log = pipeline(
@@ -214,31 +213,10 @@ def render_app():
                 {"user": user_input, "contract": contract}
             )
 
-        # ---------------------------
-        # FINAL OUTPUT
-        # ---------------------------
-        st.success("Generated Contract")
-
-            if contract and hasattr(contract, "contract_code"):
-                st.code(contract.contract_code, language="solidity")
-            else:
-                st.write("⚠️ No contract code returned.")
-
-        st.subheader("🧪 Validation Results")
-        is_compilable = getattr(contract, "is_compilable", None)
-        is_deployable = getattr(contract, "is_deployable", None)
-        compiler_errors = getattr(contract, "compiler_errors", "")
-        deploy_errors = getattr(contract, "deploy_errors", "")
-
-        if is_compilable:
-            st.success("Contract is compilable ✅")
-        else:
-            st.error(f"Contract failed compilation ❌\n{compiler_errors}")
-
-        if is_deployable:
-            st.success("Contract is deployable ✅")
-        else:
-            st.error(f"Contract failed deployment ❌\n{deploy_errors}")
+            # ---------------------------
+            # FINAL OUTPUT
+            # ---------------------------
+            st.success("Generated Contract")
 
             st.subheader("📖 Clauses")
             clauses = getattr(contract, "clauses", [])
@@ -258,6 +236,26 @@ def render_app():
             else:
                 st.write("No clauses found.")
 
+            if contract and hasattr(contract, "contract_code"):
+                st.code(contract.contract_code, language="solidity")
+            else:
+                st.write("⚠️ No contract code returned.")
+
+            st.subheader("🧪 Validation Results")
+            is_compilable = getattr(contract, "is_compilable", None)
+            is_deployable = getattr(contract, "is_deployable", None)
+            compiler_errors = getattr(contract, "compiler_errors", "")
+            deploy_errors = getattr(contract, "deploy_errors", "")
+
+            if is_compilable:
+                st.success("Contract is compilable")
+            else:
+                st.error(f"Contract failed compilation: \n{compiler_errors}")
+
+            if is_deployable:
+                st.success("Contract is deployable")
+            else:
+                st.error(f"Contract failed deployment: \n{deploy_errors}")
 
 if __name__ == "__main__":
     render_app()
