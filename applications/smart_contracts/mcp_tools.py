@@ -387,6 +387,68 @@ def validate_smart_contract(contract: SmartContract, openzeppelin_path: str = No
 
     return contract
 
+@mcp.tool(name="refine_contract")
+def refine_contract(contract: SmartContract, blockchain: str = "Ethereum") -> SmartContract:
+    """
+    Refine an existing Solidity contract based on compiler or deployment errors.
+
+    Parameters:
+        contract: SmartContract object that may have errors.
+        blockchain: Target blockchain.
+
+    Returns:
+        Updated SmartContract object with improved code.
+    """
+    import google.generativeai as genai
+
+    # Initialize LLM
+    llm = genai.GenerativeModel("gemini-2.0-flash")
+
+    # Collect errors for the prompt
+    error_messages = ""
+    if contract.compiler_errors:
+        error_messages += f"Compiler errors:\n{contract.compiler_errors}\n"
+    if contract.deploy_errors:
+        error_messages += f"Deployment errors:\n{contract.deploy_errors}\n"
+
+    prompt = f"""
+    You are an expert Solidity developer.
+    A user submitted the following contract for {blockchain}:
+
+    {contract.contract_code}
+
+    The contract had the following issues:
+    {error_messages}
+
+    Please refine and correct the contract to fix the errors.
+    - Preserve original functionality.
+    - Include comments, modifiers, and events.
+    - After the code, list key clauses in numbered bullet points: Title: Description
+
+    Respond in the following format:
+
+    ```solidity
+
+    // Corrected Solidity contract
+
+
+    Clauses:
+
+    Title: Description
+    """
+    response = llm.generate_content(prompt)
+    raw_text = getattr(response, "text", "") or ""
+    contract_code, clauses = _parse_contract_response(raw_text)
+
+    return SmartContract(
+        contract_code=contract_code,
+        clauses=clauses,
+        is_compiled=True,
+        is_deployed=True,
+        compiler_errors=None,
+        deploy_errors=None,
+    )
+
 @mcp.tool(name="web_search")
 def web_search(query: str, max_results: int) -> list[str]:
     """return spippets of text extracted from duck duck go search for the given

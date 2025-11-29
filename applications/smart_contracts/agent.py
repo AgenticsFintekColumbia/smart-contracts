@@ -181,27 +181,66 @@ def run_contract_pipeline(
         )
 
         task_generate = Task(
-            description="Generate a Solidity smart contract from the given natural language description.",
-            expected_output="A SmartContract object containing Solidity code and contract clauses.",
+            description="Generate a Solidity smart contract from the user description.",
+            expected_output="SmartContract object",
             agent=contract_agent,
             output_pydantic=SmartContract,
             tools=[generation_tool],
-            memory_key="generated_contract"
+            memory_key="contract"
         )
 
         task_validate = Task(
-            description="Check if the generated Solidity smart contract can compile and deploy successfully.",
-            expected_output="An updated SmartContract object with compilation/deployment status and error logs.",
+            description="Validate (compile + deploy) the generated smart contract.",
+            expected_output="Updated SmartContract with is_compilable, is_deployable, and logs.",
             agent=contract_agent,
-            output_pydantic=SmartContract,
             tools=[validate_smart_contract],
-            inputs={"contract": "{memory.generated_contract}"}
+            output_pydantic=SmartContract,
+            inputs={"contract": "{memory.contract}"},
+            memory_key="contract",
+            should_write_memory=True,
+            max_tool_iterations=1,
+            llm_delegate=False
+        )
+
+        task_refine = Task(
+            description="Fix compilation or deployment errors in the smart contract.",
+            expected_output="Refined SmartContract with corrections applied.",
+            agent=contract_agent,
+            tools=[refine_contract],
+            output_pydantic=SmartContract,
+            inputs={"contract": "{memory.contract}"},
+            memory_key="contract",
+            should_write_memory=True,
+            condition=lambda mem: (
+                not mem.contract.is_compilable or
+                not mem.contract.is_deployable
+            ),
+            max_tool_iterations=1,
+            llm_delegate=False
+        )
+
+        task_revalidate = Task(
+            description="Re-validate the refined smart contract.",
+            expected_output="SmartContract after second validation.",
+            agent=contract_agent,
+            tools=[validate_smart_contract],
+            output_pydantic=SmartContract,
+            inputs={"contract": "{memory.contract}"},
+            memory_key="contract",
+            should_write_memory=True,
+            condition=lambda mem: (
+                not mem.contract.is_compilable or 
+                not mem.contract.is_deployable
+            ),
+            max_tool_iterations=1,
+            llm_delegate=False
         )
 
         crew = Crew(
             agents=[contract_agent],
-            tasks=[task_generate, task_validate],
+            tasks=[task_generate, task_validate, task_refine, task_revalidate],
             verbose=True,
+            output_memory_key="contract"
         )
 
         log_buffer = io.StringIO()

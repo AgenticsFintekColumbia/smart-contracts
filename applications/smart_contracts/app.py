@@ -91,34 +91,99 @@ def render_app():
         st.session_state.show_instructions = True
 
     if st.session_state.show_instructions:
-        st.title("👋 Welcome to Solidity Smart Contract Generator")
+        st.title("🧠 Smart Contract Generator")
+
         st.markdown("""
-        **How to use:**
-        1. Enter your contract idea  
-        2. Click **Generate Contract**  
-        3. See logs + final output together  
-        """)
-        if st.button("Got it!"):
-            st.session_state.show_instructions = False
+        ---
 
-        st.markdown(
-            """
-        <div style="margin-top: 1.5rem; font-size: 0.9rem; color: #cccccc; line-height: 1.5;">
+        ## 📘 Project Overview
+        Smart contract development is complex, error prone, and requires deep knowledge of Solidity, security patterns, compiler behavior, and deployment pipelines. Even minor issues like incorrect modifiers, missing initializations, unsafe state updates can break a contract or introduce vulnerabilities. This application solves that by providing an **AI powered autonomous pipeline** that takes a natural language idea, generates a Solidity contract, validates it through compilation/deployment, fixes errors automatically, and returns a ready to deploy final version.
 
+        ---
+                        
+        ## 🤖 Why Agentics?
+        Traditional prompting cannot reliably produce error free contracts. **Agentics** lets us structure the entire process into deterministic reasoning steps:
+        - Dedicated tasks for generation, validation, and refinement  
+        - Shared memory so each step has context  
+        - Automatic triggering of refinement only when errors exist  
+        - Pydantic schemas ensuring structured SmartContract objects  
+        - MCP tool calling for accurate compilation, deployment, and LLM based fixes  
+
+        This transforms the LLM into a controlled, verifiable system rather than free form text generation.
+
+        ---
+                        
+        ## 🛠️ Tech Stack 
+        **Backend & Agentic System:**
+        - <a href="https://github.com/IBM/Agentics" target="_blank">Agentics (IBM Research Repository)</a> — core autonomous agent framework enabling task coordination, memory management, and structured multi-step execution 
+        - CrewAI — task execution, memory state, tool routing  
+        - Pydantic — structured SmartContract schema  
+        - MCP (Model Context Protocol) — connects tools over stdio  
+        - Google Gemini 2.0 Flash — main LLM for generation & refinement  
+        - FSM Fine-Tuned TinyLlama — alternative lightweight model option 
+                        
+        **Tools:**  
+        - `generate_smart_contract` – initial creation  
+        - `validate_smart_contract` – compile + deploy checks  
+        - `refine_contract` – automated correction using LLM  
+        - DDG search tool for contextual info  
+                        
+        **Frontend:**  
+        - Streamlit UI with dynamic HTML log rendering and custom contract viewer  
+
+        **Environment:**  
+        - Python 3.12  
+        - uvx runtime  
+        - `.env` configuration loader  
+
+        ---
+
+        ## ⚙️ Methodology
+        The contract pipeline follows a strict three-stage autonomous loop:
+
+        **1) Generation** – The LLM converts your description into a full Solidity contract (with events, modifiers, comments, and clauses).  
+        **2) Validation** – The contract is compiled and deployed in a sandbox, producing structured results (`is_compilable`, `is_deployable`, `compiler_errors`, `deploy_errors`).  
+        **3) Refinement** – If *any* error exists, the LLM receives the exact error logs and reconstructs a corrected version while preserving the original functionality.
+
+        This continues until a deployable contract is produced or the pipeline completes with the final best version.
+
+        ---
+
+        ## 🚀 How to Use This App
+        **1. Describe the contract idea** — the more detail you add, the better the final code.  
+        **2. Click "Generate Contract"** — the system begins the multi-step pipeline.  
+        **3. Watch the live logs** — generation, compilation, deployment, error messages, refinements.  
+        **4. Review results** — final Solidity code, clauses, validation status, and all logs.
+
+        The tool is ideal for learning, prototyping, auditing, and rapid contract development.
+
+        ---
+
+        ## 👥 Collaborators
+        <div style="font-size: 0.9rem; color: #cccccc;">
         <strong>Project Team</strong><br/>
-        <a href="https://www.linkedin.com/in/chaityas/" target="_blank">Chaitya Shah</a><br/>
-        <a href="https://www.linkedin.com/in/chunghyun-han-355b80244/" target="_blank">Chunghyun Han</a><br/>
-        <a href="https://www.linkedin.com/in/nami-jain/" target="_blank">Nami Jain</a><br/>
-        <a href="https://www.linkedin.com/in/yegan-dhaivakumar" target="_blank">Yegan Dhaivakumar</a><br/><br/>
+        <a href="https://www.linkedin.com/in/chaityas/" target="_blank">Chaitya Shah</a> | MS in Data Science, Columbia University<br/>
+        <a href="https://www.linkedin.com/in/chunghyun-han-355b80244/" target="_blank">Chunghyun Han</a> | MS in Operations Research, Columbia University<br/>
+        <a href="https://www.linkedin.com/in/nami-jain/" target="_blank">Nami Jain</a> | MS in Data Science, Columbia University<br/>
+        <a href="https://www.linkedin.com/in/yegan-dhaivakumar" target="_blank">Yegan Dhaivakumar</a> | MS in Data Science, Columbia University<br/><br/>
 
         <strong>Faculty Advisors</strong><br/>
-        <a href="https://www.linkedin.com/in/gliozzo/" target="_blank">Alfio Massimiliano Gliozzo</a><br/>
-        <a href="https://www.linkedin.com/in/agostino-capponi-842b41a5/" target="_blank">Agostino Capponi</a>
-
+        <a href="https://www.linkedin.com/in/gliozzo/" target="_blank">Alfio Massimiliano Gliozzo</a> | Chief Science Catalyst, IBM Research<br/>
+        <a href="https://www.linkedin.com/in/agostino-capponi-842b41a5/" target="_blank">Agostino Capponi</a> | Professor, Columbia University
         </div>
-        """,
-            unsafe_allow_html=True
-        )
+                    
+        ---
+                    
+        """, unsafe_allow_html=True)
+        
+
+        col1, col2, col3 = st.columns([5, 2, 5])
+
+        with col2:
+            if st.button("Got it!", use_container_width=True):
+                st.session_state.show_instructions = False
+
+
         st.stop()
 
     # ---------------------------
@@ -136,15 +201,19 @@ def render_app():
     with st.sidebar:
         st.header("💬 Chat Assistant / Model")
 
-        example_prompts = [
-            "Create an ERC20 token with minting and burning",
-            "Write an NFT contract with royalties",
-            "Build a DAO voting contract",
-            "Add a time lock to a smart contract",
-        ]
-        for prompt in example_prompts:
-            if st.button(prompt):
-                st.session_state["chat_input"] = prompt
+        EXAMPLE_PROMPTS = {
+            "Create a Full ERC-20 Token (Mint/Burn/Pause)": "Create a complete ERC-20 token smart contract using Solidity and OpenZeppelin. The contract must support minting and burning (restricted to the owner), pausing of transfers, and safe initialization of name, symbol, and initial supply. Include clear comments, NatSpec documentation, and ensure the contract follows security best practices and gas-efficient design patterns.",
+
+            "Build a DAO with Voting + Proposal Execution": "Generate a Solidity-based DAO governance contract that supports proposal creation, weighted voting, automatic proposal lifecycle transitions, and execution of approved proposals once quorum is met. The contract should include events, role restrictions, protections against re-entrancy, and clear architectural comments and NatSpec to make it upgrade-friendly and secure.",
+
+            "NFT Marketplace with Listings + Sales + Royalties": "Create a secure Solidity smart contract for an NFT marketplace supporting ERC-721 tokens. It must enable NFT listings, purchases, cancellation of listings, and royalty support (ERC-2981 if available). Use safe payment patterns, prevent re-entrancy, track listings efficiently, emit all necessary events, and include high-quality comments and NatSpec documentation throughout the contract."
+        }
+
+        st.write("### Example Prompts")
+
+        for label, long_prompt in EXAMPLE_PROMPTS.items():
+            if st.button(label):
+                st.session_state["chat_input"] = long_prompt
 
         MODEL_OPTIONS = {
             "Gemini 2.0 Flash": "gemini",
@@ -156,14 +225,14 @@ def render_app():
         model_label = st.selectbox("Choose generation model", list(MODEL_OPTIONS.keys()))
         selected_model = MODEL_OPTIONS[model_label]
 
-        user_input = st.text_area("Ask or refine your contract...", key="chat_input")
+        user_input = st.text_area("Ask or refine your contract...", key="chat_input", height=200)
 
     # ---------------------------
     # 7. MAIN APP
     # ---------------------------
     st.title("🧠 Solidity Contract Generator")
 
-    if st.button("🚀 Generate Contract"):
+    if st.button("Generate Contract", key="generate_contract"):
         if not user_input.strip():
             st.warning("Please enter a contract description.")
             st.stop()
@@ -171,7 +240,7 @@ def render_app():
         st.chat_message("user").write(user_input)
 
         with st.chat_message("assistant"):
-            st.write("Running Agent")
+            st.write("Running Agent...")
 
             log_placeholder = st.empty()
             st.session_state.crew_log = ""
@@ -182,8 +251,8 @@ def render_app():
             def _handle_log_stream(log_text: str):
                 st.session_state.crew_log = clean_ansi(log_text)
                 render_logs_in_placeholder(
-                log_placeholder, st.session_state.crew_log, LOG_HEIGHT_PX
-            )
+                    log_placeholder, st.session_state.crew_log, LOG_HEIGHT_PX
+                )
 
             with st.spinner("Generating contract..."):
                 result, final_log = pipeline(
@@ -192,25 +261,29 @@ def render_app():
                     on_log=_handle_log_stream,
                 )
 
-            st.session_state.crew_log = clean_ansi(
-                final_log or st.session_state.crew_log
-            )
-            render_logs_in_placeholder(
-                log_placeholder, st.session_state.crew_log, LOG_HEIGHT_PX
-            )
+            st.session_state.crew_log = clean_ansi(final_log or st.session_state.crew_log)
+            render_logs_in_placeholder(log_placeholder, st.session_state.crew_log, LOG_HEIGHT_PX)
 
-            contract = None
+            # ---------------------------
+            # Extract contracts from Crew memory
+            # ---------------------------
+            final_contract = None
             if hasattr(result, "tasks_output") and result.tasks_output:
                 last_task = result.tasks_output[-1]
                 if hasattr(last_task, "pydantic") and last_task.pydantic:
-                    contract = last_task.pydantic
+                    final_contract = last_task.pydantic
             elif hasattr(result, "pydantic") and result.pydantic:
-                contract = result.pydantic
+                final_contract = result.pydantic
             elif hasattr(result, "raw") and result.raw:
-                contract = result.raw
+                final_contract = result.raw
 
+            if not final_contract:
+                st.error("No contract returned by the agent.")
+                st.stop()
+
+            # Save to chat history
             st.session_state.chat_history.append(
-                {"user": user_input, "contract": contract}
+                {"user": user_input, "contract": final_contract}
             )
 
             # ---------------------------
@@ -219,7 +292,7 @@ def render_app():
             st.success("Generated Contract")
 
             st.subheader("📖 Clauses")
-            clauses = getattr(contract, "clauses", [])
+            clauses = getattr(final_contract, "clauses", [])
             if clauses:
                 for clause in clauses:
                     title = getattr(
@@ -236,16 +309,16 @@ def render_app():
             else:
                 st.write("No clauses found.")
 
-            if contract and hasattr(contract, "contract_code"):
-                st.code(contract.contract_code, language="solidity")
+            if final_contract and hasattr(final_contract, "contract_code"):
+                st.code(final_contract.contract_code, language="solidity")
             else:
                 st.write("⚠️ No contract code returned.")
 
             st.subheader("🧪 Validation Results")
-            is_compilable = getattr(contract, "is_compilable", None)
-            is_deployable = getattr(contract, "is_deployable", None)
-            compiler_errors = getattr(contract, "compiler_errors", "")
-            deploy_errors = getattr(contract, "deploy_errors", "")
+            is_compilable = getattr(final_contract, "is_compilable", None)
+            is_deployable = getattr(final_contract, "is_deployable", None)
+            compiler_errors = getattr(final_contract, "compiler_errors", "")
+            deploy_errors = getattr(final_contract, "deploy_errors", "")
 
             if is_compilable:
                 st.success("Contract is compilable")
