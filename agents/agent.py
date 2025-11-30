@@ -87,7 +87,7 @@ from mcp import StdioServerParameters
 from crewai import Agent, Task, Crew
 from agentics import AG
 
-from mcp_tools import SmartContract
+from agents.mcp_tools import SmartContract
 
 GENERATION_TOOL_MAP = {
     "gemini": "generate_smart_contract",
@@ -107,7 +107,7 @@ def run_contract_pipeline(
         args=["mcp-server-fetch"],
         env={"UV_PYTHON": "3.12", **os.environ},
     )
-    mcp_server_path = os.getenv("MCP_SERVER_PATH")
+    mcp_server_path = os.path.join(os.path.dirname(__file__), "mcp_tools.py")
     default_candidates = [
         PROJECT_ROOT / "smart_contracts" / "mcp_tools.py",
         PROJECT_ROOT / "mcp" / "DDG_search_tool_mcp.py",

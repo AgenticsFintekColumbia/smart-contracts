@@ -27,7 +27,8 @@ genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 DEFAULT_FSM_CHECKPOINT = "checkpoint-1200"
 FSM_ADAPTER_ROOT = (
     PROJECT_ROOT
-    / "smart_contracts"
+    # / "smart_contracts"
+    / "data"
     / "pretraining_code_checkpoints"
     / "FSM-Fine-Tuning-Dataset"
     / "artifacts"

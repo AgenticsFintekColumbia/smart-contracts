@@ -1,167 +1,222 @@
-<h1 align="center">Agentics</h1>
-<h2 align="center">Transduction is all you need</h1>
-<p align="center">
-    <img src="https://raw.githubusercontent.com/IBM/Agentics/refs/heads/main/image.png" height="128">
-    <img src="https://raw.githubusercontent.com/IBM/Agentics/refs/heads/main/image.png" height="128">
-</p>
+# 🧠 Smart Contract Generator (MCP + CrewAI + Streamlit)
 
+An AI-powered system for **generating**, **validating**, and **interacting** with Solidity smart contracts using:
 
-Agentics is a Python framework that provides structured, scalable, and semantically grounded agentic computation. It enables developers to build AI-powered pipelines where all operations are based on typed data transformations, combining the power of Pydantic models and LLMs with the flexibility of asynchronous execution.
+- MCP (Model Context Protocol) for tool execution  
+- CrewAI for multi-step agent reasoning  
+- Google Gemini for contract generation & reasoning  
+- solcx + web3 + eth-tester for compilation & sandbox deployment  
+- Streamlit for a conversational interface  
 
-## Getting started
+This system converts natural-language descriptions into complete Solidity contracts and validates them automatically.
 
-Learn how to install Agentic, set up your environment, and run your first logical transduction. [Getting Started](docs/getting_started.md)
+---
 
+## Features
 
-## Authors
+- Generate Solidity contracts from text prompts  
+- Compile contracts using solc  
+- Deploy contracts on an in-memory Ethereum test chain  
+- Built-in DuckDuckGo search tool  
+- CrewAI multi-step agent pipeline  
+- Interactive Streamlit chat interface  
 
-- **Principal Investigator**
-    - *Alfio Massimiliano Gliozzo*, IBM Research, gliozzo@us.ibm.com
-- **Core Contributors**:
-    - *Junkyu Lee*, IBM Research, Junkyu.Lee@ibm.com
-    - *Naweed Aghmad Khan*, IBM Research, naweed.khan@ibm.com
-    - *Nahuel Defosse*, IBM Research, nahuel.defosse@ibm.com
-    - *Christodoulos Constantinides*, IBM Watson, Christodoulos.Constantinides@ibm.com
-    - *Mustafa Eyceoz*, RedHat, Mustafa.Eyceoz@partner.ibm.com
+---
 
+## Project Structure
 
+mcp_server/
+solidity_generate_contract
+solidity_check_deployability
+web_search
 
-Agentics is an implementation of **Logical Transduction Algebra**, described in 
-- Alfio Gliozzo, Naweed Khan, Christodoulos Constantinides,  Nandana Mihindukulasooriya, Nahuel Defosse, Junkyu Lee. *Transduction is All You Need for Structured Data Workflows. August 2025*, [arXiv:2508.15610](https://arxiv.org/abs/2508.15610)
+agent.py
+streamlit_app.py
+mcp_tools.py
+requirements.txt
+README.md
 
+yaml
+Copy code
 
-We welcome new AG entusiasts to extend this framework with new applications and extension to the language. 
+---
 
+## MCP Tools (API Reference)
 
+### 1. solidity_generate_contract
 
+Generates Solidity code from a natural-language description.
 
-## 🚀 Key Features
+**Inputs**
+- `description` (str): Contract requirements  
+- `blockchain` (str, optional): Target EVM chain (default: "Ethereum")
 
-**Typed Agentic Computation**: Define workflows over structured types using standard Pydantic schemas.
+**Returns**
+- SmartContract object containing:
+  - contract_code  
+  - clauses  
+  - is_compilable = False  
+  - is_deployable = False  
 
-**Logical Transduction (`<<`)**: Transform data between types using LLMs with few-shot examples, tools, and memory.
+---
 
-**Async Mapping and Reduction**: Apply async mapping (`amap`) and aggregation (`areduce`) functions over datasets.
+### 2. solidity_check_deployability
 
-**Batch Execution & Retry**: Automatically handles batch-based asynchronous execution with graceful fallback.
+Compiles and deploys a Solidity contract using solcx and eth-tester.
 
-**Domain Customization**
-- **Prompt Templates**  Customize prompting behavior and add ad-hoc instructions
-- **Memory Augmentation**: Use retrieval-augmented memory to inform transduction.
+**Inputs**
+- `contract` (SmartContract)  
+- `openzeppelin_path` (optional str)
 
-**Built-in Support for Tools**: Integrate LangChain tools or custom functions.
+**Returns**
+- Updated SmartContract with:
+  - is_compilable  
+  - is_deployable  
+  - compiler_errors  
+  - deploy_errors  
 
+---
 
-## Tutorial 
+### 3. web_search
 
-| Notebook |   Description |
-|----------| --------------- |
-| [LLMs](https://colab.research.google.com/github/IBM/Agentics/blob/main/tutorials/llms.ipynb) | Basics |
-| [Agentic Basics](https://colab.research.google.com/github/IBM/Agentics/blob/main/tutorials/agentics_basics.ipynb)         | Step by step guide illustrating how to make a new AG, access and print its content, import and export it to files            | 
-|[Transduction](https://colab.research.google.com/github/IBM/Agentics/blob/main/tutorials/transduction.ipynb) | Demonstrate the use of logical transduction  (`<<`) in Agentics |
-| [Amap Reduce](https://colab.research.google.com/github/IBM/Agentics/blob/main/tutorials/amap_reduce.ipynb) | Try out MapReduce in Agentics to scale out |
-| [MCP Tools](./tutorials/mcp_tools.ipynb) | |
+Runs a DuckDuckGo search via DDGS.
 
-<!-- | [ATypes](https://colab.research.google.com/github/IBM/Agentics/blob/main/tutorials/atypes.ipynb) | | -->
+**Inputs**
+- `query` (str)  
+- `max_results` (int)
 
-## 🚀 Documentation
+**Returns**
+- List of text snippets in the form "title\nbody\nhref"
 
-👉 [Getting Started](docs/getting_started.md): Learn how to install Agentic, set up your environment, and run your first logical transduction.
+---
 
-🧠 [Agentics](docs/agentics.md): Explore how Agentics wraps `pydantic` models into transduction-ready agents. 
+## CrewAI Pipeline
 
-🔁 [Transduction](docs/transduction.md): Discover how the `<<` operator implements logical transduction between types and how to control its behavior.
+Pipeline logic in `run_contract_pipeline()`.
 
-🛠️ [Tools](docs/tools.md): Learn how to integrate external tools (e.g., LangChain, CrewAI) to provide access to external data necessary for logical transduction.
+### Agent
+- Role: Blockchain Developer Agent  
+- LLM: Google Gemini via Agentics  
+- Memory enabled  
+- 10 reasoning steps  
 
-## 📘 Example Usage
-```python
-from agentics import AG
-from pydantic import BaseModel
+### Task 1 — Generate Contract
+- Uses `solidity_generate_contract`  
+- Saves result to memory key: `generated_contract`
 
-class Answer(BaseModel):
-    answer: str
-    justification: str
-    confidence: float
+### Task 2 — Validate Contract
+- Uses `solidity_check_deployability`  
+- Input: `{memory.generated_contract}`  
 
-# Instantiate an Agentics object with a target type
-qa_agent = AG(atype=Answer)
+---
 
-# Perform transduction from text prompts
-qa_agent = await (qa_agent << [
-    "Who is the president of the US?",
-    "When is the end of the world predicted?",
-    "This is a report from the US embassy"
-])
+## Streamlit Chat Interface
 
-# Access structured answers
-for result in qa_agent.states:
-    print(result.answer, result.confidence)
+Run:
 
-```
+streamlit run streamlit_app.py
 
-### 🧠 Conceptual Overview
+yaml
+Copy code
 
-Agentics models workflows as transformations between typed states. Each instance of Agentics includes:
+Features:
+- Chat-based prompt entry  
+- Display Solidity code  
+- Compilation and deployment logs  
+- Clause extraction  
+- Multi-step iterative refinement  
 
-`atype`: A Pydantic model representing the schema.
+---
 
-`states`: A list of objects of that type.
+## Running the MCP Server
 
-Optional `llm`, `tools`, `prompt_template`, `memory`.
+Set environment variables in `.env`:
 
-#### Operations:
+GEMINI_API_KEY=your_api_key
+MCP_SERVER_PATH=./mcp_server.py
 
-`amap`(func): Applies an async function over each state.
+yaml
+Copy code
 
-`areduce`(func): Reduces a list of states into a single value.
+Run the server:
 
-`<<`: Performs logical transduction from source to target Agentics.
+python3 $MCP_SERVER_PATH
 
-#### 🔧 Advanced Usage
+yaml
+Copy code
 
-##### Customizing Prompts
+CrewAI uses:
 
-agent.prompt_template = """
-You are an assistant that extracts key information.
-Please respond using the format {answer}, {justification}, {confidence}.
-"""
+StdioServerParameters(
+command="python3",
+args=[os.getenv("MCP_SERVER_PATH")]
+)
 
-# 📚 Documentation
+yaml
+Copy code
 
-Full documentation and examples are available at:  
+---
 
-# 🧪 Tests
+## Installation
 
-Run all tests using:
+Install dependencies:
 
-`uv run pytest`
+pip install -r requirements.txt
 
+yaml
+Copy code
 
-# Examples
+---
 
-Run all scripts in example folder using uv
+## Requirements
 
-`uv run python examples/hello_world.py`
+agentics-python
+python-dotenv
+google-generativeai
+crewai
+crewai-tools
+pyyaml
+py-solc-x
+web3
+eth-tester
+py-evm
+streamlit
+streamlit-elements
+ddgs
 
-## $ 📄 License
+yaml
+Copy code
 
-Apache 2.0
+---
 
-## 👥 Authors
+## Example
 
-Developed by Alfio Gliozzo and contributors. 
+**User input:**
+Create a token vesting contract with 12-month linear unlock.
 
+yaml
+Copy code
 
-Contributions welcome!
+**Pipeline output:**
+- Generated Solidity code  
+- Clause list  
+- is_compilable = True  
+- is_deployable = True  
 
+---
 
-Core team  Alfio Gliozzo, Junkyu Lee, Naweed Aghmad, Nahuel Defosse, Christodoulos Constantinides, Mustafa Eyceoz and contributors.
+## Extending the Project
 
-## Contributing
+You can add new MCP tools:
+- Security scanners  
+- Gas estimators  
+- Static analyzers  
+- Contract upgrade advisors  
 
-Your commit messages should include the line:
+---
 
-```shell
-Signed-off-by: Author Name <authoremail@example.com>
-```
+## Notes
+
+- solcx may download compiler binaries on first run  
+- eth-tester deployment is fully local  
+- OpenZeppelin imports require `openzeppelin_path`

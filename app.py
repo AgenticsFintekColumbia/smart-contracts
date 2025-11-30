@@ -13,7 +13,7 @@ LOG_HEIGHT_PX = 300  # adjust log box height here
 # ---------------------------
 @st.cache_resource
 def get_pipeline():
-    from agent import run_contract_pipeline
+    from agents.agent import run_contract_pipeline
     return run_contract_pipeline
 
 _ansi_escape = re.compile(r"\x1B\[[0-?]*[ -/]*[@-~]")
