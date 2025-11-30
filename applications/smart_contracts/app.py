@@ -168,12 +168,15 @@ def render_app():
         <a href="https://www.linkedin.com/in/yegan-dhaivakumar" target="_blank">Yegan Dhaivakumar</a> | MS in Data Science, Columbia University<br/><br/>
 
         <strong>Faculty Advisors</strong><br/>
-        <a href="https://www.linkedin.com/in/gliozzo/" target="_blank">Alfio Massimiliano Gliozzo</a> | Chief Science Catalyst, IBM Research<br/>
-        <a href="https://www.linkedin.com/in/agostino-capponi-842b41a5/" target="_blank">Agostino Capponi</a> | Professor, Columbia University
+        <a href="https://www.linkedin.com/in/gliozzo/" target="_blank">Alfio Gliozzo</a> | Chief Science Catalyst, IBM Research<br/>
+        <a href="https://www.linkedin.com/in/agostino-capponi-842b41a5/" target="_blank">Agostino Capponi</a> | Professor, Columbia University<br/>
         </div>
-                    
+
+        [![GitHub Repo](https://img.shields.io/badge/GitHub-Repository-blue?logo=github)](https://github.com/AgenticsFintekColumbia/smart-contracts/)
+               
         ---
-                    
+
+            
         """, unsafe_allow_html=True)
         
 
@@ -265,20 +268,15 @@ def render_app():
             render_logs_in_placeholder(log_placeholder, st.session_state.crew_log, LOG_HEIGHT_PX)
 
             # ---------------------------
-            # Extract contracts from Crew memory
+            # Result is already extracted from agent.py
             # ---------------------------
-            final_contract = None
-            if hasattr(result, "tasks_output") and result.tasks_output:
-                last_task = result.tasks_output[-1]
-                if hasattr(last_task, "pydantic") and last_task.pydantic:
-                    final_contract = last_task.pydantic
-            elif hasattr(result, "pydantic") and result.pydantic:
-                final_contract = result.pydantic
-            elif hasattr(result, "raw") and result.raw:
-                final_contract = result.raw
-
-            if not final_contract:
-                st.error("No contract returned by the agent.")
+            final_contract = result
+            
+            # Handle unexpected result types
+            if not hasattr(final_contract, "contract_code"):
+                st.error(f"❌ No valid contract returned. Result type: {type(final_contract).__name__}")
+                if isinstance(final_contract, dict):
+                    st.error(f"Available keys: {list(final_contract.keys())}")
                 st.stop()
 
             # Save to chat history

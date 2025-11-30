@@ -260,4 +260,33 @@ def run_contract_pipeline(
         with redirect_stdout(_StdoutLogger()):
             result = crew.kickoff(inputs={"description": user_input})
 
-        return result, log_buffer.getvalue()
+        # Extract final contract from crew task outputs
+        final_contract = None
+        
+        # Strategy 1: Try to get from tasks_output (from last executed task)
+        if hasattr(result, "tasks_output") and result.tasks_output:
+            for task_output in reversed(result.tasks_output):
+                # Check for pydantic attribute (TaskOutput.pydantic)
+                if hasattr(task_output, "pydantic") and task_output.pydantic:
+                    pydantic_obj = task_output.pydantic
+                    if isinstance(pydantic_obj, SmartContract):
+                        final_contract = pydantic_obj
+                        break
+                # Check if task_output itself is a SmartContract
+                elif isinstance(task_output, SmartContract):
+                    final_contract = task_output
+                    break
+        
+        # Strategy 2: Try direct result if it's a SmartContract
+        if not final_contract and isinstance(result, SmartContract):
+            final_contract = result
+        
+        # Strategy 3: Check if result is a dict and convert to SmartContract
+        if not final_contract and isinstance(result, dict) and "contract_code" in result:
+            try:
+                final_contract = SmartContract(**result)
+            except Exception:
+                pass
+        
+        # Return extracted contract or fallback to raw result
+        return final_contract or result, log_buffer.getvalue()

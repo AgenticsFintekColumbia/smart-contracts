@@ -179,7 +179,7 @@ def _load_fsm_generation_stack():
 
         base_model = AutoModelForCausalLM.from_pretrained(
             FSM_BASE_MODEL_ID,
-            torch_dtype=dtype,
+            dtype=dtype,
         )
         model = PeftModel.from_pretrained(
             base_model,
@@ -255,8 +255,8 @@ def generate_smart_contract_pretrained(
     description: str,
     blockchain: str = "Ethereum",
     max_new_tokens: int = 1024,
-    temperature: float = 0.6,
-    top_p: float = 0.9,
+    # temperature: float = 0.6,
+    # top_p: float = 0.9,
 ) -> SmartContract:
     """Generate a contract using the FSM fine-tuned TinyLlama adapter."""
 
@@ -277,8 +277,8 @@ def generate_smart_contract_pretrained(
     eos_token_id = tokenizer.eos_token_id
     generation_kwargs = {
         "max_new_tokens": max_new_tokens,
-        "temperature": temperature,
-        "top_p": top_p,
+        # "temperature": temperature,
+        # "top_p": top_p,
     }
     if eos_token_id is not None:
         generation_kwargs["eos_token_id"] = eos_token_id
@@ -385,6 +385,8 @@ def validate_smart_contract(contract: SmartContract, openzeppelin_path: str = No
         contract.compiler_errors = str(e)
         contract.is_compilable = False
 
+    # contract.is_compilable = True
+    # contract.is_deployable = True
     return contract
 
 @mcp.tool(name="refine_contract")
@@ -443,8 +445,8 @@ def refine_contract(contract: SmartContract, blockchain: str = "Ethereum") -> Sm
     return SmartContract(
         contract_code=contract_code,
         clauses=clauses,
-        is_compiled=True,
-        is_deployed=True,
+        is_compilable=True,
+        is_deployable=True,
         compiler_errors=None,
         deploy_errors=None,
     )
