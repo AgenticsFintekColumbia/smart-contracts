@@ -16,7 +16,7 @@ license = "Apache-2.0"
 dependencies = [
     "ddgs",
     "pydantic",
-    "crewai (>=0.95.0,<1.0.0)",
+    "crewai[google-genai]>=0.95.0,<1.0.0",
     "crewai-tools[mcp] (>=0.76.0,<1.0.0)",
     "langchain-core (>=0.3.76,<0.4.0)",
     "langchain-huggingface (>=0.2.0,<0.3.0)",

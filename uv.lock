@@ -34,7 +34,7 @@ name = "agentics-py"
 source = { editable = "." }
 dependencies = [
     { name = "aiosqlite" },
-    { name = "crewai", extra = ["tools"] },
+    { name = "crewai" },
     { name = "crewai-tools", extra = ["mcp"] },
     { name = "datasets" },
     { name = "ddgs" },
@@ -92,8 +92,8 @@ rhel = [
 [package.metadata]
 requires-dist = [
     { name = "aiosqlite", specifier = ">=0.21.0" },
-    { name = "crewai", extras = ["google-genai", "rag", "tools"] },
-    { name = "crewai-tools", extras = ["mcp"] },
+    { name = "crewai", extras = ["google-genai"], specifier = ">=0.95.0,<1.0.0" },
+    { name = "crewai-tools", extras = ["mcp"], specifier = ">=0.76.0,<1.0.0" },
     { name = "datasets", specifier = ">=4.0.0,<5.0.0" },
     { name = "ddgs" },
     { name = "eth-tester", specifier = ">=0.8.0b1,<0.14.0" },
@@ -776,11 +776,6 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/62/4e/325fd0032b065dfbdeb2a366ac6d1e35b2e5b4530eb4f3f15f84f7aad406/crewai-0.95.0.tar.gz", hash = "sha256:31c7c6405e7658f177fac82c47b208d2a9c4bc82ddcc622ba2dc8c6e9963eb17", size = 7753264, upload-time = "2025-01-04T19:41:41.222Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/cb/fc/286f4af720bccd0337bcb6af61fb68018d45187a0f985419dd7e42af86c4/crewai-0.95.0-py3-none-any.whl", hash = "sha256:e8d65d74a5ca43e1a353d32cca1fe56a06846bf08419bf2bf270e5007379f787", size = 211939, upload-time = "2025-01-04T19:41:37.085Z" },
-]
-
-[package.optional-dependencies]
-tools = [
-    { name = "crewai-tools" },
 ]
 
 [[package]]

@@ -1,8 +1,7 @@
-agentics-python
 python-dotenv
 google-generativeai
-crewai>=0.95.0
-crewai-tools[mcp]>=0.76.0
+crewai==0.121.1
+crewai-tools==0.45.0
 pyyaml
 py-solc-x
 web3
