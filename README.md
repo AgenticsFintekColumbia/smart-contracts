@@ -21,7 +21,7 @@ The system features:
 ## Environment Variables Required
 
 - SELECTED_LLM = "gemini" 
-- GEMINI_API_KEY = "" fill in with api key
+- GEMINI_API_KEY = "api key here"
 - GEMINI_MODEL_ID = "gemini/gemini-2.0-flash"
 
 ## Local Setup
