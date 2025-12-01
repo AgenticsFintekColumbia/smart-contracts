@@ -16,4 +16,4 @@ json-repair>=0.30.0
 loguru>=0.7.0
 numerize>=0.12
 ddgs>=3.1.0
-agentics-py @ git+https://github.com/IBM/Agentics.git
+# agentics-py @ git+https://github.com/IBM/Agentics.git

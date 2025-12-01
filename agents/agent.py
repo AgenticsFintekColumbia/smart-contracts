@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Callable, Optional
 
 from dotenv import load_dotenv
+from pydantic import BaseModel
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 SRC_PATH = PROJECT_ROOT / "src"
@@ -82,10 +83,45 @@ def _ensure_crewai_rag_shim() -> None:
 
 _ensure_crewai_rag_shim()
 
+
+def _ensure_envvar_shim() -> None:
+    """
+    CrewAI 0.121 removed EnvVar exports, but crewai-tools still imports it.
+    Provide a minimal compatible shim so the tools keep working.
+    """
+    try:
+        import crewai.tools as crewai_tools_module  # noqa: WPS433
+    except ImportError:
+        return
+
+    if hasattr(crewai_tools_module, "EnvVar"):
+        return
+
+    class EnvVar(BaseModel):
+        name: str
+        description: str
+        required: bool = True
+
+    crewai_tools_module.EnvVar = EnvVar  # type: ignore[attr-defined]
+
+
+_ensure_envvar_shim()
+
 from crewai_tools import MCPServerAdapter
 from mcp import StdioServerParameters
-from crewai import Agent, Task, Crew
-from agentics import AG
+from crewai import Agent, Task, Crew, LLM
+
+try:
+    from agentics import AG as _Agentics
+except ImportError:  # pragma: no cover - compatibility shim
+    _Agentics = None
+
+try:
+    from agentics.core.llm_connections import (
+        get_llm_provider as _agentics_llm_provider,
+    )
+except ImportError:  # pragma: no cover - compatibility shim
+    _agentics_llm_provider = None
 
 from agents.mcp_tools import SmartContract
 
@@ -95,6 +131,79 @@ GENERATION_TOOL_MAP = {
 }
 
 load_dotenv()
+
+
+def _build_env_llm(provider: str) -> LLM | None:
+    """Create a CrewAI LLM directly from environment variables."""
+    provider = (provider or "").lower()
+
+    if provider in {"gemini", ""}:
+        gemini_key = os.getenv("GEMINI_API_KEY")
+        if gemini_key:
+            return LLM(
+                model=os.getenv("GEMINI_MODEL_ID", "gemini/gemini-2.0-flash"),
+                api_key=gemini_key,
+                temperature=float(os.getenv("GEMINI_TEMPERATURE", "0.7")),
+            )
+
+    if provider == "openai":
+        api_key = os.getenv("OPENAI_API_KEY")
+        model_id = os.getenv("OPENAI_MODEL_ID")
+        if api_key and model_id:
+            return LLM(
+                model=model_id,
+                api_key=api_key,
+                temperature=float(os.getenv("OPENAI_TEMPERATURE", "0.7")),
+                top_p=float(os.getenv("OPENAI_TOP_P", "0.9")),
+            )
+
+    if provider == "watsonx":
+        api_key = os.getenv("WATSONX_APIKEY")
+        url = os.getenv("WATSONX_URL")
+        project_id = os.getenv("WATSONX_PROJECTID")
+        model_id = os.getenv("MODEL_ID")
+        if api_key and url and project_id and model_id:
+            return LLM(
+                model=model_id,
+                base_url=url,
+                project_id=project_id,
+                api_key=api_key,
+                temperature=float(os.getenv("WATSONX_TEMPERATURE", "0")),
+                max_tokens=int(os.getenv("WATSONX_MAX_TOKENS", "4000")),
+                max_input_tokens=int(os.getenv("WATSONX_MAX_INPUT_TOKENS", "100000")),
+            )
+
+    if provider == "vllm":
+        base_url = os.getenv("VLLM_URL")
+        model_id = os.getenv("VLLM_MODEL_ID")
+        if base_url and model_id:
+            return LLM(
+                model=model_id,
+                api_key=os.getenv("VLLM_API_KEY", "EMPTY"),
+                base_url=base_url,
+                max_tokens=int(os.getenv("VLLM_MAX_TOKENS", "1000")),
+                temperature=float(os.getenv("VLLM_TEMPERATURE", "0.0")),
+            )
+
+    return None
+
+
+def _get_agentics_llm(provider_name: str = "gemini"):
+    """Return the requested Agentics LLM provider with graceful degradation."""
+    if _Agentics and hasattr(_Agentics, "get_llm_provider"):
+        return _Agentics.get_llm_provider(provider_name)
+    if _agentics_llm_provider:
+        return _agentics_llm_provider(provider_name)
+
+    env_llm = _build_env_llm(provider_name)
+    if env_llm:
+        return env_llm
+
+    raise ImportError(
+        "Agentics LLM helpers are unavailable and no compatible environment "
+        "variables were found. Ensure `agentics-py` is installed or set "
+        "GEMINI/OpenAI credentials in `.env`."
+    )
 
 
 def run_contract_pipeline(
@@ -177,7 +286,7 @@ def run_contract_pipeline(
             reasoning_steps=10,
             memory=True,
             verbose=True,
-            llm=AG.get_llm_provider('gemini')
+            llm=_get_agentics_llm("gemini"),
         )
 
         task_generate = Task(

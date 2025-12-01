@@ -1,0 +1,40 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "smart-contracts"
+version = "0.1.0"
+description = "Building Smart Contracts using Agentics"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "agentics-py>=0.0.0",        # ✅ THIS is your Agentics dependency
+    "numpy",
+    "pandas",
+    "pydantic",
+    "python-dotenv",
+    "mcp",
+    "fastmcp",
+
+    "crewai>=0.124",
+    "crewai-tools>=0.44",
+    "google-generativeai",
+    "pyyaml",
+    "py-solc-x",
+    "web3",
+    "eth-tester",
+    "py-evm",
+    "torch>=2.3.0",
+    "transformers>=4.45.0",
+    "peft>=0.13.0",
+    "langchain-core>=0.3.0",
+    "langchain-huggingface>=0.2.0",
+    "json-repair>=0.30.0",
+    "loguru>=0.7.0",
+    "numerize>=0.12",
+    "ddgs>=3.1.0",
+]
+
+[tool.setuptools]
+py-modules = ["app"]
