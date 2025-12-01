@@ -1,0 +1,18 @@
+Project Slug: smart-contracts
+Student Name: Chaitya Shah
+Student Email: cs4621@university.edu
+Main File: app.py
+
+Environment Variables Needed:
+- GOOGLE_API_KEY: Yes (Replace GOOGLE_API_KEY with GEMINI_API_KEY)
+- OPENAI_API_KEY: No
+
+- SELECTED_LLM = "gemini" 
+- GEMINI_API_KEY='' 
+- GEMINI_MODEL_ID= "gemini/gemini-2.0-flash"
+
+Verified Working Locally: Yes
+Verified Working in Docker: Yes
+
+Notes:
+[Any special instructions or notes for the TA]
