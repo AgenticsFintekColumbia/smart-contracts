@@ -173,6 +173,7 @@ def render_app():
         </div>
 
         [![GitHub Repo](https://img.shields.io/badge/GitHub-Repository-blue?logo=github)](https://github.com/AgenticsFintekColumbia/smart-contracts/)
+        [![YouTube Link](https://www.youtube.com/watch?v=2RQG0wKUiZ4)
                
         ---
 
