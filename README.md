@@ -21,8 +21,8 @@ The system features:
 ## Environment Variables Required
 
 - SELECTED_LLM = "gemini" 
-- GEMINI_API_KEY= "" fill in with api key
-- GEMINI_MODEL_ID= "gemini/gemini-2.0-flash"
+- GEMINI_API_KEY = "" fill in with api key
+- GEMINI_MODEL_ID = "gemini/gemini-2.0-flash"
 
 ## Local Setup
 
@@ -40,10 +40,7 @@ git clone git@github.com:IBM/agentics.git
 cd agentics
 pip install -e .
 cd ..
-pip install -1 .
-
-# Create .env file with required variables
-echo "GEMINI_API_KEY=your_gemini_api_key_here" > .env
+pip install -e .
 
 # Run the Streamlit app
 streamlit run app.py
@@ -157,20 +154,6 @@ def my_tool(param1: str) -> str:
     """Tool description"""
     return result
 ```
-
-## Troubleshooting
-
-**Issue**: `GEMINI_API_KEY not set`
-- **Solution**: Create `.env` file with `GEMINI_API_KEY=your_key`
-
-**Issue**: Streamlit connection errors
-- **Solution**: Ensure `streamlit run app.py` is executed from project root
-
-**Issue**: FSM model not found
-- **Solution**: Check `FSM_PRETRAINED_PATH` environment variable or download checkpoint
-
-**Issue**: Solidity compilation failures
-- **Solution**: solcx automatically downloads compiler on first run; requires internet access
 
 ## Team
 
