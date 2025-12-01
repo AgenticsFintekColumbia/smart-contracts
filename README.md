@@ -1,222 +1,185 @@
-# 🧠 Smart Contract Generator (MCP + CrewAI + Streamlit)
+# Solidity Smart Contract Generator
 
-An AI-powered system for **generating**, **validating**, and **interacting** with Solidity smart contracts using:
+## Description
 
-- MCP (Model Context Protocol) for tool execution  
-- CrewAI for multi-step agent reasoning  
-- Google Gemini for contract generation & reasoning  
-- solcx + web3 + eth-tester for compilation & sandbox deployment  
-- Streamlit for a conversational interface  
+An AI-powered autonomous system for **generating**, **validating**, and **refining** Solidity smart contracts from natural language descriptions. This project combines Agentics (IBM Research), CrewAI, Google Gemini 2.0 Flash, and MCP (Model Context Protocol) to create production-grade Solidity contracts with automatic error detection and correction.
 
-This system converts natural-language descriptions into complete Solidity contracts and validates them automatically.
+The system features:
+- **Multi-step agentic pipeline**: Generation → Validation → Refinement → Re-validation
+- **Intelligent error handling**: Automatic compilation and deployment testing with LLM-based fixes
+- **Structured outputs**: Pydantic-based SmartContract schema with clauses extraction
+- **Flexible model selection**: Google Gemini 2.0 Flash or FSM fine-tuned TinyLlama
+- **Interactive UI**: Streamlit chat interface with live logs and contract viewer
+- **Sandbox deployment**: Local in-memory Ethereum testing via eth-tester
 
----
+## Deployment Information
 
-## Features
+- **Project Slug:** `smart-contracts`
+- **Deployment URL:** `https://d28ay7eykuuini.cloudfront.net/smart-contracts`
+- **Main File:** `app.py`
 
-- Generate Solidity contracts from text prompts  
-- Compile contracts using solc  
-- Deploy contracts on an in-memory Ethereum test chain  
-- Built-in DuckDuckGo search tool  
-- CrewAI multi-step agent pipeline  
-- Interactive Streamlit chat interface  
+## Environment Variables Required
 
----
+- SELECTED_LLM = "gemini" 
+- GEMINI_API_KEY= "" fill in with api key
+- GEMINI_MODEL_ID= "gemini/gemini-2.0-flash"
+
+## Local Setup
+
+```bash
+# Clone repository
+git clone https://github.com/AgenticsFintekColumbia/smart-contracts.git
+cd smart-contracts
+
+# Create virtual environment
+python3.12 -m venv .venv
+source .venv/bin/activate
+
+# Install dependencies
+git clone git@github.com:IBM/agentics.git
+cd agentics
+pip install -e .
+cd ..
+pip install -1 .
+
+# Create .env file with required variables
+echo "GEMINI_API_KEY=your_gemini_api_key_here" > .env
+
+# Run the Streamlit app
+streamlit run app.py
+```
+
+## Architecture
+
+### Core Components
+
+**1. MCP Tools** (`agents/mcp_tools.py`)
+- `generate_smart_contract`: LLM-based contract generation using Gemini 2.0 Flash
+- `generate_smart_contract_pretrained`: Alternative generation using FSM fine-tuned TinyLlama
+- `validate_smart_contract`: Compilation and deployment testing using solcx and eth-tester
+- `refine_contract`: Error correction using LLM guidance
+- `web_search`: DuckDuckGo search for contextual information
+
+**2. Agentic Pipeline** (`agents/agent.py`)
+- **Blockchain Developer Agent**: Multi-step reasoning with 10 reasoning steps
+- **Task Pipeline**:
+  1. **Generate**: Create initial Solidity contract
+  2. **Validate**: Compile and deploy test
+  3. **Refine** (conditional): Fix errors if validation fails
+  4. **Re-validate** (conditional): Test refined contract
+- **Memory Management**: Shared state across tasks via CrewAI memory
+- **Tool Routing**: Automatic selection of appropriate MCP tools
+
+**3. Streamlit UI** (`app.py`)
+- Chat-based contract description input
+- Live log streaming with ANSI cleanup
+- Code syntax highlighting for Solidity
+- Validation status display (compilable/deployable)
+- Clause extraction and visualization
+- Example prompts for quick start
 
 ## Project Structure
 
-mcp_server/
-solidity_generate_contract
-solidity_check_deployability
-web_search
+```
+smart-contracts/
+├── app.py                      # Streamlit UI application
+├── agents/
+│   ├── agent.py               # Agentic pipeline orchestration
+│   └── mcp_tools.py           # MCP tool definitions
+├── data/                       # Pretraining checkpoints for FSM
+│   └── pretraining_code_checkpoints/
+├── requirements.txt           # Python dependencies
+├── .env                       # Environment variables (create manually)
+└── README.md                  # Original project documentation
+```
 
-agent.py
-streamlit_app.py
-mcp_tools.py
-requirements.txt
-README.md
+## Usage Examples
 
-yaml
-Copy code
+### Example 1: ERC-20 Token
+```
+Create a complete ERC-20 token smart contract using Solidity and OpenZeppelin. 
+The contract must support minting and burning (restricted to the owner), pausing of transfers, 
+and safe initialization of name, symbol, and initial supply.
+```
 
----
+### Example 2: DAO Governance
+```
+Generate a Solidity-based DAO governance contract that supports proposal creation, 
+weighted voting, automatic proposal lifecycle transitions, and execution of approved 
+proposals once quorum is met.
+```
 
-## MCP Tools (API Reference)
+### Example 3: NFT Marketplace
+```
+Create a secure Solidity smart contract for an NFT marketplace supporting ERC-721 tokens 
+with listings, purchases, cancellation, and royalty support (ERC-2981).
+```
 
-### 1. solidity_generate_contract
+## Pipeline Methodology
 
-Generates Solidity code from a natural-language description.
+1. **Generation**: User describes contract → LLM generates full Solidity code + clauses
+2. **Validation**: 
+   - Compile using solc 0.8.20
+   - Deploy to in-memory EthereumTester
+   - Capture compiler and deployment errors
+3. **Refinement** (if errors):
+   - Pass exact error logs to LLM
+   - LLM reconstructs corrected version
+   - Preserve original functionality
+4. **Re-validation**: Test refined contract
+5. **Output**: Final deployable contract with full logs
 
-**Inputs**
-- `description` (str): Contract requirements  
-- `blockchain` (str, optional): Target EVM chain (default: "Ethereum")
+## Features
 
-**Returns**
-- SmartContract object containing:
-  - contract_code  
-  - clauses  
-  - is_compilable = False  
-  - is_deployable = False  
-
----
-
-### 2. solidity_check_deployability
-
-Compiles and deploys a Solidity contract using solcx and eth-tester.
-
-**Inputs**
-- `contract` (SmartContract)  
-- `openzeppelin_path` (optional str)
-
-**Returns**
-- Updated SmartContract with:
-  - is_compilable  
-  - is_deployable  
-  - compiler_errors  
-  - deploy_errors  
-
----
-
-### 3. web_search
-
-Runs a DuckDuckGo search via DDGS.
-
-**Inputs**
-- `query` (str)  
-- `max_results` (int)
-
-**Returns**
-- List of text snippets in the form "title\nbody\nhref"
-
----
-
-## CrewAI Pipeline
-
-Pipeline logic in `run_contract_pipeline()`.
-
-### Agent
-- Role: Blockchain Developer Agent  
-- LLM: Google Gemini via Agentics  
-- Memory enabled  
-- 10 reasoning steps  
-
-### Task 1 — Generate Contract
-- Uses `solidity_generate_contract`  
-- Saves result to memory key: `generated_contract`
-
-### Task 2 — Validate Contract
-- Uses `solidity_check_deployability`  
-- Input: `{memory.generated_contract}`  
-
----
-
-## Streamlit Chat Interface
-
-Run:
-
-streamlit run streamlit_app.py
-
-yaml
-Copy code
-
-Features:
-- Chat-based prompt entry  
-- Display Solidity code  
-- Compilation and deployment logs  
-- Clause extraction  
-- Multi-step iterative refinement  
-
----
-
-## Running the MCP Server
-
-Set environment variables in `.env`:
-
-GEMINI_API_KEY=your_api_key
-MCP_SERVER_PATH=./mcp_server.py
-
-yaml
-Copy code
-
-Run the server:
-
-python3 $MCP_SERVER_PATH
-
-yaml
-Copy code
-
-CrewAI uses:
-
-StdioServerParameters(
-command="python3",
-args=[os.getenv("MCP_SERVER_PATH")]
-)
-
-yaml
-Copy code
-
----
-
-## Installation
-
-Install dependencies:
-
-pip install -r requirements.txt
-
-yaml
-Copy code
-
----
-
-## Requirements
-
-agentics-python
-python-dotenv
-google-generativeai
-crewai
-crewai-tools
-pyyaml
-py-solc-x
-web3
-eth-tester
-py-evm
-streamlit
-streamlit-elements
-ddgs
-
-yaml
-Copy code
-
----
-
-## Example
-
-**User input:**
-Create a token vesting contract with 12-month linear unlock.
-
-yaml
-Copy code
-
-**Pipeline output:**
-- Generated Solidity code  
-- Clause list  
-- is_compilable = True  
-- is_deployable = True  
-
----
+✅ Generate production-grade Solidity contracts from text  
+✅ Automatic compilation and deployment testing  
+✅ Intelligent error detection and multi-step correction  
+✅ Clause extraction and documentation  
+✅ Live log streaming in web UI  
+✅ Multiple LLM backends (Gemini, fine-tuned TinyLlama)  
+✅ DuckDuckGo search integration  
+✅ Structured Pydantic schemas  
+✅ Memory-safe task coordination  
 
 ## Extending the Project
 
-You can add new MCP tools:
-- Security scanners  
-- Gas estimators  
-- Static analyzers  
-- Contract upgrade advisors  
+You can add new MCP tools for:
+- Security auditing (e.g., Slither integration)
+- Gas optimization analysis
+- Static code analysis
+- Contract upgrade advisors
+- Compliance checkers
 
----
+Add new tools to `agents/mcp_tools.py` following the FastMCP decorator pattern:
+```python
+@mcp.tool(name="my_tool_name")
+def my_tool(param1: str) -> str:
+    """Tool description"""
+    return result
+```
 
-## Notes
+## Troubleshooting
 
-- solcx may download compiler binaries on first run  
-- eth-tester deployment is fully local  
-- OpenZeppelin imports require `openzeppelin_path`
+**Issue**: `GEMINI_API_KEY not set`
+- **Solution**: Create `.env` file with `GEMINI_API_KEY=your_key`
+
+**Issue**: Streamlit connection errors
+- **Solution**: Ensure `streamlit run app.py` is executed from project root
+
+**Issue**: FSM model not found
+- **Solution**: Check `FSM_PRETRAINED_PATH` environment variable or download checkpoint
+
+**Issue**: Solidity compilation failures
+- **Solution**: solcx automatically downloads compiler on first run; requires internet access
+
+## Team
+
+**Project Team**
+- [Chaitya Shah](https://www.linkedin.com/in/chaityas/) | MS in Data Science, Columbia University
+- [Chunghyun Han](https://www.linkedin.com/in/chunghyun-han-355b80244/) | MS in Operations Research, Columbia University
+- [Nami Jain](https://www.linkedin.com/in/nami-jain/) | MS in Data Science, Columbia University
+- [Yegan Dhaivakumar](https://www.linkedin.com/in/yegan-dhaivakumar) | MS in Data Science, Columbia University
+
+**Faculty Advisors**
+- [Alfio Gliozzo](https://www.linkedin.com/in/gliozzo/) | Chief Science Catalyst, IBM Research
+- [Agostino Capponi](https://www.linkedin.com/in/agostino-capponi-842b41a5/) | Professor, Columbia University
