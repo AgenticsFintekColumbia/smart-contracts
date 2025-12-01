@@ -16,6 +16,7 @@ The system features:
 
 - **Project Slug:** `smart-contracts`
 - **Deployment URL:** `https://d28ay7eykuuini.cloudfront.net/smart-contracts`
+- **Video Presentation:** `https://www.youtube.com/watch?v=2RQG0wKUiZ4`
 - **Main File:** `app.py`
 
 ## Environment Variables Required
