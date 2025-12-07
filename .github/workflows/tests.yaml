@@ -21,7 +21,7 @@ jobs:
       uses: actions/cache@v4
       with:
         path: .venv
-        key: uv-venv-${{ runner.os }}-${{ hashFiles('requirements.txt') }}
+        key: uv-venv-${{ runner.os }}-v2-${{ hashFiles('requirements.txt') }}
         restore-keys: |
           uv-venv-${{ runner.os }}-
 
